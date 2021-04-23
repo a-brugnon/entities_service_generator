@@ -1,5 +1,6 @@
 services:
   entities_service_generator.commands:
     class: \Drupal\entities_service_generator\Commands\EntitiesServiceGeneratorCommands
+    autowire: true
     tags:
       - { name: drush.command }
