@@ -21,6 +21,8 @@ use Nette\PhpGenerator\Printer;
  */
 class EntitiesServiceGeneratorCommands extends DrushCommands {
 
+  protected $folder = 'EntityManagerServices';
+
   /**
    * @var EntityFieldManagerInterface
    */
@@ -52,7 +54,8 @@ class EntitiesServiceGeneratorCommands extends DrushCommands {
     $fieldDefinitions = $this->entityFieldManager->getFieldDefinitions($entityType, $bundle);
 
     $file = new PhpFile();
-    $class = $file->addClass(ucfirst($bundle).ucfirst($entityType).'Fetcher');
+    $namespace = $file->addNamespace('Drupal\\'.$module.'\Service\\'.$this->folder.'\\'.ucfirst($entityType));
+    $class = $namespace->addClass(ucfirst($bundle).ucfirst($entityType).'Fetcher');
     foreach ($fieldDefinitions as $fieldName => $fieldDefinition){
       if(substr($fieldName, 0, 6) == 'field_'){
         $method = $class->addMethod('fetch_'.$fieldName);
@@ -81,7 +84,7 @@ class EntitiesServiceGeneratorCommands extends DrushCommands {
     $this->createFolder($basePath.'/src');
     $this->createFolder($basePath.'/src/Service');
     $this->createFolder($basePath.'/src/Service/EntityManagerServices');
-    return $this->createFolder($basePath.'/src/Service/EntityManagerServices/'.ucfirst($entityType));
+    return $this->createFolder($basePath.'/src/Service/'.$this->folder.'/'.ucfirst($entityType));
   }
 
   protected function createFolder($path){
