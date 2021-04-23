@@ -1,0 +1,5 @@
+services:
+  entities_service_generator.commands:
+    class: \Drupal\entities_service_generator\Commands\EntitiesServiceGeneratorCommands
+    tags:
+      - { name: drush.command }
