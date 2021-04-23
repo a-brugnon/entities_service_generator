@@ -3,8 +3,8 @@
 namespace Drupal\entities_service_generator\Commands;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drush\Commands\DrushCommands;
-use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpFile;
 use Nette\PhpGenerator\Printer;
 
@@ -28,8 +28,15 @@ class EntitiesServiceGeneratorCommands extends DrushCommands {
    */
   protected $entityFieldManager;
 
-  public function __construct(EntityFieldManagerInterface $entityFieldManager) {
+  /**
+   * @var EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  public function __construct(EntityFieldManagerInterface $entityFieldManager,
+                              EntityTypeManagerInterface $entityTypeManager) {
     $this->entityFieldManager = $entityFieldManager;
+    $this->entityTypeManager = $entityTypeManager;
   }
 
 
@@ -52,6 +59,7 @@ class EntitiesServiceGeneratorCommands extends DrushCommands {
    */
   public function generateService(string $module, string $entityType, string $bundle = '') {
     $fieldDefinitions = $this->entityFieldManager->getFieldDefinitions($entityType, $bundle);
+    $entityClass = $this->entityTypeManager->getDefinition($entityType)->getClass();
 
     $file = new PhpFile();
     $namespace = $file->addNamespace('Drupal\\'.$module.'\Service\\'.$this->folder.'\\'.ucfirst($entityType));
@@ -59,13 +67,13 @@ class EntitiesServiceGeneratorCommands extends DrushCommands {
     foreach ($fieldDefinitions as $fieldName => $fieldDefinition){
       if(substr($fieldName, 0, 6) == 'field_'){
         $method = $class->addMethod('fetch_'.$fieldName);
-        $method->addParameter($entityType);
-        $method->setBody(
-        "if($".$entityType."->hasField('".$fieldName."') && !$".$entityType."->isEmpty('".$fieldName."'))".
-        "\n\treturn $".$entityType."->get('".$fieldName."')->getValue();".
-        "\nelse".
-        "\n\treturn NULL;"
-        );
+        $method->addParameter($entityType)->setType($entityClass);
+
+        $body = "if($".$entityType."->hasField('".$fieldName."') && !$".$entityType."->get('".$fieldName."')->isEmpty())";
+        $body .= "\n\treturn $".$entityType."->get('".$fieldName."')->getValue();";
+        $body .= "\nelse";
+        $body .="\n\treturn NULL;";
+        $method->setBody($body);
       }
     }
 
