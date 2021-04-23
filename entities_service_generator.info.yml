@@ -1,0 +1,5 @@
+name: Entites Service Generator
+type: module
+description: Generate services to manage entity
+package: AB
+core: 8.x
