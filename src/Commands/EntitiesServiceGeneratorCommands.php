@@ -66,7 +66,8 @@ class EntitiesServiceGeneratorCommands extends DrushCommands {
     $class = $namespace->addClass(ucfirst($bundle).ucfirst($entityType).'Fetcher');
     foreach ($fieldDefinitions as $fieldName => $fieldDefinition){
       if(substr($fieldName, 0, 6) == 'field_'){
-        $method = $class->addMethod('fetch_'.$fieldName);
+        $readableFieldName = $this->prepareFieldName($fieldName);
+        $method = $class->addMethod('fetch'.$readableFieldName);
         $method->addParameter($entityType)->setType($entityClass);
 
         $body = "if($".$entityType."->hasField('".$fieldName."') && !$".$entityType."->get('".$fieldName."')->isEmpty())";
@@ -86,7 +87,7 @@ class EntitiesServiceGeneratorCommands extends DrushCommands {
 
   }
 
-  protected function prepareServiceTree($module, $entityType){
+  protected function prepareServiceTree($module, $entityType): string{
     $basePath = $this->fetchModuleBasePath($module);
     $this->createFolder($basePath);
     $this->createFolder($basePath.'/src');
@@ -95,14 +96,26 @@ class EntitiesServiceGeneratorCommands extends DrushCommands {
     return $this->createFolder($basePath.'/src/Service/'.$this->folder.'/'.ucfirst($entityType));
   }
 
-  protected function createFolder($path){
+  protected function createFolder(string $path): string{
     if(!file_exists($path))
       mkdir($path);
     return $path;
   }
 
-  protected function fetchModuleBasePath($module){
+  protected function fetchModuleBasePath(string $module): string{
     return 'modules/custom/'.$module;
+  }
+
+  protected function prepareFieldName(string $fieldName): string {
+    $explodeFieldName = explode('_', $fieldName);
+    $readableFieldName = '';
+    foreach ($explodeFieldName as $key => $item){
+      if($key == 0)
+        continue;
+      $readableFieldName .= ucfirst($item);
+    }
+
+    return $readableFieldName;
   }
 
 
