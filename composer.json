@@ -1,0 +1,19 @@
+{
+    "name": "a-brugnon/entities_service_generator",
+    "description": "Generate entities service",
+    "type": "drupal-module",
+    "authors": [
+        {
+            "name": "Arnaud Brugnon",
+            "email": "arnaud.brugnon@gmail.com"
+        },
+        {
+            "name": "Rehan Mazhar",
+            "email": "rehansyed89@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "nette/php-generator": "^3.5"
+    }
+}
