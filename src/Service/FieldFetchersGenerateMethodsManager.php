@@ -23,8 +23,10 @@ class FieldFetchersGenerateMethodsManager {
   public function generateMethods(ClassType &$class, FieldConfigInterface $fieldConfig, string $entityType,
                                   string $entityClass){
     foreach($this->fieldFetcherMethods as $fieldFetcherMethod){
-      if($fieldFetcherMethod->doesHandle($fieldConfig, $entityType, $entityClass))
-        $fieldFetcherMethod->generateMethods($class, $fieldConfig,  $entityType,  $entityClass);
+      if($fieldFetcherMethod->doesHandle($fieldConfig, $entityType, $entityClass)) {
+        $fieldFetcherMethod->generateMethods($class, $fieldConfig, $entityType, $entityClass);
+        break;
+      }
     }
   }
 }
