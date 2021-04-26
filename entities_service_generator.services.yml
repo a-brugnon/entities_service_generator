@@ -1,0 +1,9 @@
+services:
+  entities_service_generator.field_generate_methods:
+    class: Drupal\entities_service_generator\Service\FieldFetchersGenerateMethodsManager
+    arguments: ['@entities_service_generator.field_generate_methods.adapters.default']
+
+  #Adapters
+  entities_service_generator.field_generate_methods.adapters.default:
+    class: Drupal\entities_service_generator\Service\Adapter\FieldFetcherMethod\DefaultGenerator
+    autowire: true

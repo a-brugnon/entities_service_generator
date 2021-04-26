@@ -4,6 +4,8 @@ namespace Drupal\entities_service_generator\Commands;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\entities_service_generator\Service\FieldFetchersGenerateMethodsManager;
+use Drupal\field\Entity\FieldConfig;
 use Drush\Commands\DrushCommands;
 use Nette\PhpGenerator\PhpFile;
 use Nette\PhpGenerator\Printer;
@@ -33,10 +35,17 @@ class EntitiesServiceGeneratorCommands extends DrushCommands {
    */
   protected $entityTypeManager;
 
+  /**
+   * @var FieldFetchersGenerateMethodsManager
+   */
+  protected $fieldFetchersGenerateMethodsManager;
+
   public function __construct(EntityFieldManagerInterface $entityFieldManager,
-                              EntityTypeManagerInterface $entityTypeManager) {
+                              EntityTypeManagerInterface $entityTypeManager,
+                              FieldFetchersGenerateMethodsManager $fieldFetchersGenerateMethodsManager) {
     $this->entityFieldManager = $entityFieldManager;
     $this->entityTypeManager = $entityTypeManager;
+    $this->fieldFetchersGenerateMethodsManager = $fieldFetchersGenerateMethodsManager;
   }
 
 
@@ -64,17 +73,9 @@ class EntitiesServiceGeneratorCommands extends DrushCommands {
     $file = new PhpFile();
     $namespace = $file->addNamespace('Drupal\\'.$module.'\Service\\'.$this->folder.'\\'.ucfirst($entityType));
     $class = $namespace->addClass(ucfirst($bundle).ucfirst($entityType).'Fetcher');
-    foreach ($fieldDefinitions as $fieldName => $fieldDefinition){
-      if(substr($fieldName, 0, 6) == 'field_'){
-        $readableFieldName = $this->prepareFieldName($fieldName);
-        $method = $class->addMethod('fetch'.$readableFieldName);
-        $method->addParameter($entityType)->setType($entityClass);
-
-        $body = "if($".$entityType."->hasField('".$fieldName."') && !$".$entityType."->get('".$fieldName."')->isEmpty())";
-        $body .= "\n\treturn $".$entityType."->get('".$fieldName."')->getValue();";
-        $body .= "\nelse";
-        $body .="\n\treturn NULL;";
-        $method->setBody($body);
+    foreach ($fieldDefinitions as $fieldDefinition){
+      if($fieldDefinition instanceof FieldConfig){
+        $this->fieldFetchersGenerateMethodsManager->generateMethods($class, $fieldDefinition, $entityType, $entityClass);
       }
     }
 
@@ -105,18 +106,5 @@ class EntitiesServiceGeneratorCommands extends DrushCommands {
   protected function fetchModuleBasePath(string $module): string{
     return 'modules/custom/'.$module;
   }
-
-  protected function prepareFieldName(string $fieldName): string {
-    $explodeFieldName = explode('_', $fieldName);
-    $readableFieldName = '';
-    foreach ($explodeFieldName as $key => $item){
-      if($key == 0)
-        continue;
-      $readableFieldName .= ucfirst($item);
-    }
-
-    return $readableFieldName;
-  }
-
 
 }
