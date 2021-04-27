@@ -2,9 +2,8 @@
 
 namespace Drupal\entities_service_generator\Service;
 
-use Drupal;
-use Drupal\Core\Field\FieldConfigInterface;
 use Drupal\entities_service_generator\Service\Adapter\FieldFetcherMethodInterface;
+use Drupal\field\Entity\FieldConfig;
 use Nette\PhpGenerator\ClassType;
 
 class FieldFetchersGenerateMethodsManager {
@@ -20,7 +19,7 @@ class FieldFetchersGenerateMethodsManager {
     }
   }
 
-  public function generateMethods(ClassType &$class, FieldConfigInterface $fieldConfig, string $entityType,
+  public function generateMethods(ClassType &$class, FieldConfig $fieldConfig, string $entityType,
                                   string $entityClass){
     foreach($this->fieldFetcherMethods as $fieldFetcherMethod){
       if($fieldFetcherMethod->doesHandle($fieldConfig, $entityType, $entityClass)) {

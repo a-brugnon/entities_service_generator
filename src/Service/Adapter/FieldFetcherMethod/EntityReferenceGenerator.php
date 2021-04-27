@@ -3,6 +3,7 @@
 namespace Drupal\entities_service_generator\Service\Adapter\FieldFetcherMethod;
 
 use Drupal\Core\Field\FieldConfigInterface;
+use Drupal\field\Entity\FieldConfig;
 use Nette\PhpGenerator\ClassType;
 
 class EntityReferenceGenerator extends Generator {
@@ -11,18 +12,21 @@ class EntityReferenceGenerator extends Generator {
     return $fieldConfig->getType() == 'entity_reference';
   }
 
-  public function generateMethods(ClassType &$class, FieldConfigInterface $fieldConfig, string $entityType, string $entityClass){
+  public function generateMethods(ClassType &$class, FieldConfig $fieldConfig, string $entityType, string $entityClass){
     $this->generateFetchIdsMethod($class, $fieldConfig, $entityType, $entityClass);
     $this->generateFetchEntitiesMethod($class, $fieldConfig, $entityType, $entityClass);
   }
 
-  protected function generateFetchIdsMethod(ClassType &$class, FieldConfigInterface $fieldConfig, string $entityType, string $entityClass) {
+  protected function generateFetchIdsMethod(ClassType &$class, FieldConfig $fieldConfig, string $entityType, string $entityClass) {
     $fieldName = $fieldConfig->getName();
-    $method = $class->addMethod($this->prepareFunctionTitle($fieldName).'IDs');
-    $method->addParameter($entityType)->setType($entityClass);
+    $methodName = $this->prepareFunctionTitle($fieldName).'Ids';
+    $method = $this->prepareMethod($fieldConfig, $class, $methodName , $entityType, $entityClass);
 
-    $body = $this->prepareBody($entityType, $fieldName);
-    $method->addBody($body);
+    $method->addBody('if(!empty($offset)) {');
+    $method->addBody("\t".'$item = $node->get(\''.$fieldName.'\')->get($offset);');
+    $method->addBody("\t".'return !empty($value) ? $item->get(\'target_id\')->getValue() : NULL;');
+    $method->addBody('}');
+
     $method->addBody('$iterator = $'.$entityType.'->get(\''.$fieldName.'\')->getIterator();');
     $method->addBody('$output = [];');
     $method->addBody('foreach($iterator as $item){');
@@ -31,13 +35,17 @@ class EntityReferenceGenerator extends Generator {
     $method->addBody('return $output;');
   }
 
-  protected function generateFetchEntitiesMethod(ClassType $class, FieldConfigInterface $fieldConfig, string $entityType, string $entityClass) {
+  protected function generateFetchEntitiesMethod(ClassType $class, FieldConfig $fieldConfig, string $entityType, string $entityClass) {
     $fieldName = $fieldConfig->getName();
-    $method = $class->addMethod($this->prepareFunctionTitle($fieldName).'Entities');
-    $method->addParameter($entityType)->setType($entityClass);
+    $methodName = $this->prepareFunctionTitle($fieldName).'Entities';
+    $method = $this->prepareMethod($fieldConfig, $class, $methodName , $entityType, $entityClass);
 
-    $body = $this->prepareBody($entityType, $fieldName);
-    $method->addBody($body);
+    //@todo : Find a better way to integrate php code
+    $method->addBody('if(!empty($offset)) {');
+    $method->addBody("\t".'$item = $node->get(\''.$fieldName.'\')->get($offset);');
+    $method->addBody("\t".'return !empty($value) ? $item->entity : NULL;');
+    $method->addBody('}');
+
     $method->addBody('$iterator = $'.$entityType.'->get(\''.$fieldName.'\')->getIterator();');
     $method->addBody('$output = [];');
     $method->addBody('foreach($iterator as $item){');
